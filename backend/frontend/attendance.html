@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -50,7 +51,7 @@
       const container = document.getElementById("attendanceContainer");
 
       try {
-        const res = await fetch("/api/attendance");
+        const res = await fetch("https://hooni-class.onrender.com/api/attendance");
         const attendance = await res.json();
 
         if (Object.keys(attendance).length === 0) {

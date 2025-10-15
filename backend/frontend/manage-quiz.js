@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function fetchQuizzes() {
     try {
-      const res = await fetch("/api/quiz");
+      const res = await fetch("https://hooni-class.onrender.com/api/quiz");
       const data = await res.json();
       renderQuizList(data);
     } catch (err) {
@@ -62,14 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       if (editingId) {
-        await fetch(`/api/quiz/${editingId}`, {
+        await fetch(`https://hooni-class.onrender.com/api/quiz/${editingId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(quizData)
         });
         editingId = null;
       } else {
-        await fetch("/api/quiz", {
+        await fetch("https://hooni-class.onrender.com/api/quiz", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(quizData)
@@ -85,7 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.deleteQuiz = async function (id) {
     if (!confirm("이 문제를 삭제하시겠습니까?")) return;
     try {
-      await fetch(`/api/quiz/${id}`, { method: "DELETE" });
+      await fetch(`https://hooni-class.onrender.com/api/quiz/${id}`, {
+        method: "DELETE"
+      });
       fetchQuizzes();
     } catch (err) {
       alert("삭제 실패");
@@ -94,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.editQuiz = async function (id) {
     try {
-      const res = await fetch(`/api/quiz`);
+      const res = await fetch("https://hooni-class.onrender.com/api/quiz");
       const data = await res.json();
       const quiz = data.find(q => q._id === id);
       if (!quiz) return;

@@ -112,155 +112,155 @@
     </thead>
     <tbody id="requestBody"></tbody>
   </table>
-
-  <script>
-    async function loadAttendanceTable() {
-      try {
-        const res = await fetch("/api/attendance");
-        const attendance = await res.json();
-        const tbody = document.querySelector("#attendanceTable tbody");
-        tbody.innerHTML = "";
-
-        for (const date in attendance) {
-          attendance[date].forEach(name => {
-            const row = tbody.insertRow();
-            row.innerHTML = `
-              <td>${name}</td>
-              <td>${date}</td>
-              <td>출석</td>
-              <td>
-                <button class="edit" onclick="editRow(this)">수정</button>
-                <button class="delete" onclick="deleteRow(this)">삭제</button>
-              </td>
-            `;
-          });
-        }
-      } catch (err) {
-        console.error("출석 데이터를 불러오는 중 오류:", err);
-      }
-    }
-
-    async function addRow() {
-      const name = document.getElementById("nameInput").value.trim();
-      const date = document.getElementById("dateInput").value;
-      const status = document.getElementById("statusInput").value;
-
-      if (!name || !date) {
-        alert("이름과 날짜를 입력해주세요.");
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/attendance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const result = await res.json();
-        alert(result.message);
-        loadAttendanceTable();
-      } catch (err) {
-        alert("출석 추가 중 오류가 발생했습니다.");
-      }
-
-      document.getElementById("nameInput").value = "";
-      document.getElementById("dateInput").value = "";
-    }
-
-    async function deleteRow(btn) {
-      const row = btn.closest("tr");
-      const name = row.cells[0].textContent;
-      const date = row.cells[1].textContent;
-
-      if (confirm(`"${name}"의 출석 기록을 삭제하시겠습니까?`)) {
-        try {
-          await fetch("/api/attendance", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, date })
-          });
-          row.remove();
-        } catch (err) {
-          alert("삭제 중 오류가 발생했습니다.");
-        }
-      }
-    }
-
-    async function approveAttendance(name, date) {
-      try {
-        const res = await fetch("/api/attendance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const result = await res.json();
-        alert(result.message);
-        loadRequests();
-        loadAttendanceTable();
-      } catch (err) {
-        alert("출석 처리 중 오류가 발생했습니다.");
-      }
-    }
-
-    function loadRequests() {
-      const requests = JSON.parse(localStorage.getItem("attendanceRequests") || "{}");
-      const today = new Date().toISOString().split("T")[0];
-      const todayRequests = requests[today] || [];
-
-      const tbody = document.getElementById("requestBody");
-      const emptyMessage = document.getElementById("emptyMessage");
+<script>
+  async function loadAttendanceTable() {
+    try {
+      const res = await fetch("https://hooni-class.onrender.com/api/attendance");
+      const attendance = await res.json();
+      const tbody = document.querySelector("#attendanceTable tbody");
       tbody.innerHTML = "";
-      emptyMessage.textContent = "";
 
-      if (todayRequests.length === 0) {
-        emptyMessage.textContent = "오늘 출석 요청이 없습니다.";
-        return;
+      for (const date in attendance) {
+        attendance[date].forEach(name => {
+          const row = tbody.insertRow();
+          row.innerHTML = `
+            <td>${name}</td>
+            <td>${date}</td>
+            <td>출석</td>
+            <td>
+              <button class="edit" onclick="editRow(this)">수정</button>
+              <button class="delete" onclick="deleteRow(this)">삭제</button>
+            </td>
+          `;
+        });
       }
+    } catch (err) {
+      console.error("출석 데이터를 불러오는 중 오류:", err);
+    }
+  }
 
-      todayRequests.forEach(name => {
-        const row = document.createElement("tr");
+  async function addRow() {
+    const name = document.getElementById("nameInput").value.trim();
+    const date = document.getElementById("dateInput").value;
+    const status = document.getElementById("statusInput").value;
 
-        const nameCell = document.createElement("td");
-        nameCell.textContent = name;
+    if (!name || !date) {
+      alert("이름과 날짜를 입력해주세요.");
+      return;
+    }
 
-        const dateCell = document.createElement("td");
-        dateCell.textContent = today;
-
-        const actionCell = document.createElement("td");
-        const btn = document.createElement("button");
-        btn.textContent = "출석 처리";
-        btn.className = "approve";
-        btn.onclick = function () {
-          approveAttendance(name, today);
-        };
-        actionCell.appendChild(btn);
-
-        row.appendChild(nameCell);
-        row.appendChild(dateCell);
-        row.appendChild(actionCell);
-
-        tbody.appendChild(row);
+    try {
+      const res = await fetch("https://hooni-class.onrender.com/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
       });
+      const result = await res.json();
+      alert(result.message);
+      loadAttendanceTable();
+    } catch (err) {
+      alert("출석 추가 중 오류가 발생했습니다.");
     }
 
-    function editRow(btn) {
-      const row = btn.closest("tr");
-      const name = prompt("이름 수정:", row.cells[0].textContent);
-      const date = prompt("날짜 수정:", row.cells[1].textContent);
-      const status = prompt("출석 상태 수정 (출석/지각/결석):", row.cells[2].textContent);
+    document.getElementById("nameInput").value = "";
+    document.getElementById("dateInput").value = "";
+  }
 
-      if (name && date && status) {
-        row.cells[0].textContent = name;
-        row.cells[1].textContent = date;
-        row.cells[2].textContent = status;
+  async function deleteRow(btn) {
+    const row = btn.closest("tr");
+    const name = row.cells[0].textContent;
+    const date = row.cells[1].textContent;
+
+    if (confirm(`"${name}"의 출석 기록을 삭제하시겠습니까?`)) {
+      try {
+        await fetch("https://hooni-class.onrender.com/api/attendance", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, date })
+        });
+        row.remove();
+      } catch (err) {
+        alert("삭제 중 오류가 발생했습니다.");
       }
     }
+  }
 
-    window.onload = function () {
+  async function approveAttendance(name, date) {
+    try {
+      const res = await fetch("https://hooni-class.onrender.com/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const result = await res.json();
+      alert(result.message);
       loadRequests();
       loadAttendanceTable();
-    };
-  </script>
+    } catch (err) {
+      alert("출석 처리 중 오류가 발생했습니다.");
+    }
+  }
+
+  function loadRequests() {
+    const requests = JSON.parse(localStorage.getItem("attendanceRequests") || "{}");
+    const today = new Date().toISOString().split("T")[0];
+    const todayRequests = requests[today] || [];
+
+    const tbody = document.getElementById("requestBody");
+    const emptyMessage = document.getElementById("emptyMessage");
+    tbody.innerHTML = "";
+    emptyMessage.textContent = "";
+
+    if (todayRequests.length === 0) {
+      emptyMessage.textContent = "오늘 출석 요청이 없습니다.";
+      return;
+    }
+
+    todayRequests.forEach(name => {
+      const row = document.createElement("tr");
+
+      const nameCell = document.createElement("td");
+      nameCell.textContent = name;
+
+      const dateCell = document.createElement("td");
+      dateCell.textContent = today;
+
+      const actionCell = document.createElement("td");
+      const btn = document.createElement("button");
+      btn.textContent = "출석 처리";
+      btn.className = "approve";
+      btn.onclick = function () {
+        approveAttendance(name, today);
+      };
+      actionCell.appendChild(btn);
+
+      row.appendChild(nameCell);
+      row.appendChild(dateCell);
+      row.appendChild(actionCell);
+
+      tbody.appendChild(row);
+    });
+  }
+
+  function editRow(btn) {
+    const row = btn.closest("tr");
+    const name = prompt("이름 수정:", row.cells[0].textContent);
+    const date = prompt("날짜 수정:", row.cells[1].textContent);
+    const status = prompt("출석 상태 수정 (출석/지각/결석):", row.cells[2].textContent);
+
+    if (name && date && status) {
+      row.cells[0].textContent = name;
+      row.cells[1].textContent = date;
+      row.cells[2].textContent = status;
+    }
+  }
+
+  window.onload = function () {
+    loadRequests();
+    loadAttendanceTable();
+  };
+</script>
+
 
 </body>
 </html>

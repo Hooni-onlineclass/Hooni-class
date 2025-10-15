@@ -55,7 +55,8 @@
       margin-bottom: 20px;
     }
   </style>
-</head><body>
+</head>
+<body>
   <h1>🛠️ 수업방 설정</h1>
 
   <label for="roomTitle">수업 제목</label>
@@ -86,10 +87,11 @@
   </div>
 
   <button onclick="saveSettings()">설정 저장</button>
-<button onclick="deleteFullClassroomByLink(document.getElementById('roomLink').value)" class="delete-btn">🗑️ 수업방 삭제</button>
-
+  <button onclick="deleteFullClassroomByLink(document.getElementById('roomLink').value)" class="delete-btn">🗑️ 수업방 삭제</button>
 
   <script>
+    const API_BASE = "https://hooni-class.onrender.com";
+
     document.getElementById("target").addEventListener("change", function () {
       const value = this.value;
       document.getElementById("studentBox").style.display = value === "specific" ? "block" : "none";
@@ -140,13 +142,13 @@
       localStorage.setItem("roomSettings", JSON.stringify(settings));
 
       try {
-        await fetch("/api/video-class", {
+        await fetch(`${API_BASE}/api/video-class`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(settings)
         });
 
-        await fetch("/api/schedule", {
+        await fetch(`${API_BASE}/api/schedule`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -177,17 +179,17 @@
       if (!confirmDelete) return;
 
       try {
-        const videoRes = await fetch(`/api/video-class?link=${encodeURIComponent(link)}`);
+        const videoRes = await fetch(`${API_BASE}/api/video-class?link=${encodeURIComponent(link)}`);
         const videoClasses = await videoRes.json();
         for (const cls of videoClasses) {
-          await fetch(`/api/video-class/${cls._id}`, { method: "DELETE" });
+          await fetch(`${API_BASE}/api/video-class/${cls._id}`, { method: "DELETE" });
         }
 
-        const scheduleRes = await fetch(`/api/schedule?user=후니`);
+        const scheduleRes = await fetch(`${API_BASE}/api/schedule?user=후니`);
         const schedules = await scheduleRes.json();
         const related = schedules.filter(s => s.url === link);
         for (const item of related) {
-          await fetch(`/api/schedule/${item._id}`, { method: "DELETE" });
+          await fetch(`${API_BASE}/api/schedule/${item._id}`, { method: "DELETE" });
         }
 
         const settingsList = JSON.parse(localStorage.getItem("roomSettingsList") || "[]");
@@ -214,4 +216,3 @@
   </script>
 </body>
 </html>
-

@@ -3,6 +3,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>수업 일정 등록</title>
   <style>
     body {
@@ -10,19 +11,37 @@
       padding: 20px;
       max-width: 600px;
       margin: auto;
+      background: #f5f7fa;
+    }
+    h1 {
+      color: #007bff;
+      margin-bottom: 20px;
     }
     label {
       display: block;
       margin-top: 10px;
+      font-weight: bold;
     }
     input, select {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
     }
     button {
       margin-top: 15px;
       padding: 10px 20px;
+      font-size: 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
     }
     .notice {
       margin-top: 15px;
@@ -60,7 +79,8 @@
   </div>
 
   <script>
-    // create-room.html에서 저장한 링크 자동 채움
+    const API_BASE = "https://hooni-class.onrender.com";
+
     document.addEventListener("DOMContentLoaded", () => {
       const saved = localStorage.getItem("roomSettings");
       if (saved) {
@@ -71,8 +91,41 @@
         }
       }
     });
+
+    document.getElementById("scheduleForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const title = document.getElementById("title").value.trim();
+      const datetime = document.getElementById("datetime").value;
+      const link = document.getElementById("link").value.trim();
+      const user = "후니";
+
+      if (!title || !datetime) {
+        alert("제목과 날짜를 입력해주세요.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/schedule`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, start: datetime, url: link, user })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("✅ 일정이 등록되었습니다.");
+          document.getElementById("scheduleForm").reset();
+        } else {
+          alert(data.message || "일정 등록 실패");
+        }
+      } catch (err) {
+        console.error("일정 등록 오류:", err);
+        alert("서버 오류로 등록할 수 없습니다.");
+      }
+    });
   </script>
 
-  <script src="schedule.js"></script>
 </body>
 </html>

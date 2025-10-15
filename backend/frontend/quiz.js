@@ -3,10 +3,12 @@ let questions = [];
 let currentIndex = 0;
 let score = 0;
 
+const API_BASE = "https://hooni-class.onrender.com";
+
 // ✅ 퀴즈 문제 서버에서 불러오기
 async function loadQuizFromServer() {
   try {
-    const res = await fetch("/api/quiz");
+    const res = await fetch(`${API_BASE}/api/quiz`);
     const data = await res.json();
     if (data.length === 0) {
       alert("등록된 퀴즈가 없습니다. 관리자에게 문의하세요.");
@@ -109,7 +111,7 @@ function saveResult() {
   localStorage.setItem("quizResults", JSON.stringify(results));
 
   // 서버 저장
-  fetch("/api/quiz-result", {
+  fetch(`${API_BASE}/api/quiz-result`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(result)

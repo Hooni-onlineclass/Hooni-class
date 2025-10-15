@@ -108,7 +108,7 @@
       if (!name || !email || !message) return;
 
       try {
-        await fetch("/api/inquiry", {
+        await fetch("https://hooni-class.onrender.com/api/inquiry", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -133,7 +133,7 @@
       document.querySelectorAll(".my-inquiry-container").forEach(el => el.remove());
 
       try {
-        const res = await fetch("/api/inquiry");
+        const res = await fetch("https://hooni-class.onrender.com/api/inquiry");
         const inquiries = await res.json();
 
         const myList = inquiries.filter(item => item.author === myName);
@@ -168,7 +168,7 @@
     async function deleteInquiry(id) {
       if (!confirm("정말 삭제하시겠습니까?")) return;
       try {
-        await fetch(`/api/inquiry/${id}`, { method: "DELETE" });
+        await fetch(`https://hooni-class.onrender.com/api/inquiry/${id}`, { method: "DELETE" });
         loadMyInquiries();
       } catch (err) {
         alert("삭제 실패");
@@ -179,7 +179,7 @@
       const newText = prompt("문의 내용을 수정하세요:", oldText);
       if (!newText || newText.trim() === "") return;
       try {
-        await fetch(`/api/inquiry/${id}`, {
+        await fetch(`https://hooni-class.onrender.com/api/inquiry/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: newText.trim() })

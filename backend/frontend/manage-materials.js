@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function fetchMaterials() {
     try {
-      const res = await fetch("/api/materials");
+      const res = await fetch("https://hooni-class.onrender.com/api/materials");
       const data = await res.json();
       renderMaterials(data);
     } catch (err) {
@@ -39,7 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.deleteMaterial = async function (id) {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     try {
-      await fetch(`/api/materials/${id}`, { method: "DELETE" });
+      await fetch(`https://hooni-class.onrender.com/api/materials/${id}`, {
+        method: "DELETE"
+      });
       fetchMaterials();
     } catch (err) {
       alert("삭제 실패");
@@ -68,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       try {
-        await fetch("/api/materials", {
+        await fetch("https://hooni-class.onrender.com/api/materials", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newMaterial)

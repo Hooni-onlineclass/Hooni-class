@@ -56,7 +56,6 @@
       <select id="roleSelect" required>
         <option value="">역할 선택</option>
         <option value="student">학생</option>
-      
       </select>
       <input type="text" id="name" placeholder="이름" required />
       <input type="text" id="phone" placeholder="휴대폰 번호 ('-' 없이)" required />
@@ -67,6 +66,8 @@
   </div>
 
   <script>
+    const API_BASE = "https://hooni-class.onrender.com";
+
     document.getElementById("registerForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
@@ -86,7 +87,7 @@
       msg.style.color = "gray";
       msg.textContent = "가입 요청 중...";
 
-      fetch("/api/register", {
+      fetch(`${API_BASE}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, pw, role, name, phone, email })
@@ -96,8 +97,6 @@
           if (status === 201) {
             msg.style.color = "green";
             msg.textContent = body.message;
-
-            // ✅ 로그인 페이지로 자동 이동 (2초 후)
             setTimeout(() => {
               window.location.href = "login.html";
             }, 2000);

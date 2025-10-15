@@ -43,84 +43,85 @@
   <div class="inquiry-list" id="inquiryList"></div>
 
   <script>
-    const list = document.getElementById("inquiryList");
+  const list = document.getElementById("inquiryList");
 
-    async function loadInquiries() {
-      list.innerHTML = "";
+  async function loadInquiries() {
+    list.innerHTML = "";
 
-      try {
-        const res = await fetch("/api/inquiry");
-        const inquiries = await res.json();
+    try {
+      const res = await fetch("https://hooni-class.onrender.com/api/inquiry");
+      const inquiries = await res.json();
 
-        if (inquiries.length === 0) {
-          list.innerHTML = `<p class="empty">문의 내역이 없습니다.</p>`;
-          return;
-        }
-
-        inquiries.forEach((data) => {
-          const inquiry = document.createElement("div");
-          inquiry.className = "inquiry";
-          inquiry.innerHTML = `
-            <div class="actions">
-              <button onclick="replyInquiry('${data._id}', '${data.reply || ''}')">💬 답변</button>
-              <button onclick="editInquiry('${data._id}', '${data.text.replace(/'/g, "\\'")}')">✏️ 수정</button>
-              <button onclick="deleteInquiry('${data._id}')">🗑️ 삭제</button>
-            </div>
-            <h3>${data.author}</h3>
-            <p>${data.text}</p>
-            <small>${new Date(data.date).toLocaleString()}</small>
-            ${data.reply ? `<div class="reply">답변: ${data.reply}</div>` : ""}
-          `;
-          list.appendChild(inquiry);
-        });
-      } catch (err) {
-        list.innerHTML = `<p class="empty">문의 내역을 불러오지 못했습니다.</p>`;
+      if (inquiries.length === 0) {
+        list.innerHTML = `<p class="empty">문의 내역이 없습니다.</p>`;
+        return;
       }
+
+      inquiries.forEach((data) => {
+        const inquiry = document.createElement("div");
+        inquiry.className = "inquiry";
+        inquiry.innerHTML = `
+          <div class="actions">
+            <button onclick="replyInquiry('${data._id}', '${data.reply || ''}')">💬 답변</button>
+            <button onclick="editInquiry('${data._id}', '${data.text.replace(/'/g, "\\'")}')">✏️ 수정</button>
+            <button onclick="deleteInquiry('${data._id}')">🗑️ 삭제</button>
+          </div>
+          <h3>${data.author}</h3>
+          <p>${data.text}</p>
+          <small>${new Date(data.date).toLocaleString()}</small>
+          ${data.reply ? `<div class="reply">답변: ${data.reply}</div>` : ""}
+        `;
+        list.appendChild(inquiry);
+      });
+    } catch (err) {
+      list.innerHTML = `<p class="empty">문의 내역을 불러오지 못했습니다.</p>`;
     }
+  }
 
-    async function replyInquiry(id, oldReply) {
-      const reply = prompt("답변을 입력하세요:", oldReply);
-      if (!reply || reply.trim() === "") return;
+  async function replyInquiry(id, oldReply) {
+    const reply = prompt("답변을 입력하세요:", oldReply);
+    if (!reply || reply.trim() === "") return;
 
-      try {
-        await fetch(`/api/inquiry/${id}/reply`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reply: reply.trim() })
-        });
-        loadInquiries();
-      } catch (err) {
-        alert("답변 등록 실패");
-      }
+    try {
+      await fetch(`https://hooni-class.onrender.com/api/inquiry/${id}/reply`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reply: reply.trim() })
+      });
+      loadInquiries();
+    } catch (err) {
+      alert("답변 등록 실패");
     }
+  }
 
-    async function deleteInquiry(id) {
-      if (!confirm("정말 삭제하시겠습니까?")) return;
-      try {
-        await fetch(`/api/inquiry/${id}`, { method: "DELETE" });
-        loadInquiries();
-      } catch (err) {
-        alert("삭제 실패");
-      }
+  async function deleteInquiry(id) {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      await fetch(`https://hooni-class.onrender.com/api/inquiry/${id}`, { method: "DELETE" });
+      loadInquiries();
+    } catch (err) {
+      alert("삭제 실패");
     }
+  }
 
-    async function editInquiry(id, oldText) {
-      const newText = prompt("문의 내용을 수정하세요:", oldText);
-      if (!newText || newText.trim() === "") return;
-      try {
-        await fetch(`/api/inquiry/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: newText.trim() })
-        });
-        loadInquiries();
-      } catch (err) {
-        alert("수정 실패");
-      }
+  async function editInquiry(id, oldText) {
+    const newText = prompt("문의 내용을 수정하세요:", oldText);
+    if (!newText || newText.trim() === "") return;
+    try {
+      await fetch(`https://hooni-class.onrender.com/api/inquiry/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: newText.trim() })
+      });
+      loadInquiries();
+    } catch (err) {
+      alert("수정 실패");
     }
+  }
 
-    window.onload = loadInquiries;
-  </script>
+  window.onload = loadInquiries;
+</script>
+
 
 </body>
 </html>

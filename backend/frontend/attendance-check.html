@@ -43,30 +43,31 @@
   <button onclick="submitAttendance()">출석 요청하기</button>
 
   <script>
-    function submitAttendance() {
-      const name = document.getElementById("nameInput").value.trim();
-      if (!name) {
-        alert("이름을 입력해주세요.");
-        return;
-      }
-
-      const today = new Date().toISOString().split("T")[0];
-
-      fetch("/api/attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, date: today })
-      })
-        .then(res => res.json())
-        .then(data => {
-          alert(data.message);
-        })
-        .catch(err => {
-          alert("출석 요청 중 오류가 발생했습니다.");
-          console.error(err);
-        });
+  function submitAttendance() {
+    const name = document.getElementById("nameInput").value.trim();
+    if (!name) {
+      alert("이름을 입력해주세요.");
+      return;
     }
-  </script>
+
+    const today = new Date().toISOString().split("T")[0];
+
+    fetch("https://hooni-class.onrender.com/api/attendance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, date: today })
+    })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+      })
+      .catch(err => {
+        alert("출석 요청 중 오류가 발생했습니다.");
+        console.error(err);
+      });
+  }
+</script>
+
 
 </body>
 </html>

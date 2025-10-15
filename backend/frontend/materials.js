@@ -1,5 +1,6 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE = "https://hooni-class.onrender.com";
   const list = document.getElementById("materialsList");
   const subjectFilter = document.getElementById("subjectFilter");
 
@@ -7,13 +8,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function fetchMaterials() {
     try {
-      const res = await fetch("/api/materials");
+      const res = await fetch(`${API_BASE}/api/materials`);
       const data = await res.json();
       allMaterials = data;
       renderMaterials();
     } catch (err) {
       console.error("자료 불러오기 실패", err);
       list.innerHTML = "<p>자료를 불러올 수 없습니다.</p>";
+    }
+  }
+
+  async function deleteMaterial(id) {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      await fetch(`${API_BASE}/api/materials/${id}`, { method: "DELETE" });
+      fetchMaterials();
+    } catch (err) {
+      alert("삭제 실패");
     }
   }
 
@@ -45,6 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <a href="${item.fileUrl}" target="_blank">
             <button>열기</button>
           </a>
+          <button class="delete" onclick="deleteMaterial('${item._id}')">삭제</button>
         </div>
       `;
       list.appendChild(card);

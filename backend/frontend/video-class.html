@@ -4,8 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>화상 수업 입장</title>
- <script src="https://meet.mayfirst.org/external_api.js"></script>
-
+  <script src="https://meet.mayfirst.org/external_api.js"></script>
   <script src="/jitsi_module.js"></script>
   <style>
     body {
@@ -59,10 +58,11 @@
 
   <div id="classList"></div>
   <div id="jitsi"></div>
-  <!-- ✅ 여기에 추가하세요 -->
   <div id="fake-frame" style="position: absolute; top: 80px; left: 80px; width: 1200px; height: 750px; visibility: hidden;"></div>
 
   <script>
+    const API_BASE = "https://hooni-class.onrender.com";
+
     window.loadClasses = async function () {
       const student = document.getElementById("studentName").value.trim();
       if (!student) {
@@ -71,7 +71,7 @@
       }
 
       try {
-        const res = await fetch(`/api/video-class?student=${encodeURIComponent(student)}`);
+        const res = await fetch(`${API_BASE}/api/video-class?student=${encodeURIComponent(student)}`);
         const classes = await res.json();
 
         const container = document.getElementById("classList");
@@ -105,16 +105,14 @@
     };
 
     window.enterClass = function (link, studentName) {
-      const roomName = link.replace("https://meet.jit.si/", "").trim();
       const jitsiArea = document.getElementById("jitsi");
       jitsiArea.innerHTML = "";
 
-     if (typeof openJitsiLikeFrame === "function") {
-  openJitsiLikeFrame(link); // 전체 링크 전달
-} else {
-  alert("❌ Jitsi 창을 열 수 없습니다.");
-}
-
+      if (typeof openJitsiLikeFrame === "function") {
+        openJitsiLikeFrame(link);
+      } else {
+        alert("❌ Jitsi 창을 열 수 없습니다.");
+      }
     };
   </script>
 </body>

@@ -76,10 +76,12 @@
   <div id="fake-frame" style="position: absolute; top: 80px; left: 80px; width: 1200px; height: 750px; visibility: hidden;"></div>
 
   <script>
+    const API_BASE = "https://hooni-class.onrender.com";
+
     window.loadClasses = async function () {
       const student = document.getElementById("studentName").value.trim();
-      let url = "/api/video-class";
-      url += `?createdBy=후니${student ? `&student=${encodeURIComponent(student)}` : ""}`;
+      let url = `${API_BASE}/api/video-class?createdBy=후니`;
+      if (student) url += `&student=${encodeURIComponent(student)}`;
 
       try {
         const res = await fetch(url);
@@ -121,7 +123,6 @@
     };
 
     window.enterClass = function (link, displayName) {
-      const roomName = link.replace("https://meet.jit.si/", "").trim();
       const jitsiArea = document.getElementById("jitsi");
       jitsiArea.innerHTML = "";
 
@@ -137,10 +138,7 @@
       if (!confirmDelete) return;
 
       try {
-        const res = await fetch(`/api/video-class/${id}`, {
-          method: "DELETE"
-        });
-        const result = await res.json();
+        await fetch(`${API_BASE}/api/video-class/${id}`, { method: "DELETE" });
         alert("삭제되었습니다.");
         loadClasses();
       } catch (err) {
@@ -165,7 +163,7 @@
         link: newLink
       };
 
-      fetch(`/api/video-class/${id}`, {
+      fetch(`${API_BASE}/api/video-class/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated)
@@ -181,22 +179,21 @@
       });
     };
 
-    // ✅ 통합 삭제 함수 추가
     async function deleteFullClassroomByLink(link) {
       if (!confirm(`이 수업방과 관련된 모든 데이터를 삭제하시겠습니까?\n\n${link}`)) return;
 
       try {
-        const videoRes = await fetch(`/api/video-class?link=${encodeURIComponent(link)}`);
+        const videoRes = await fetch(`${API_BASE}/api/video-class?link=${encodeURIComponent(link)}`);
         const videoClasses = await videoRes.json();
         for (const cls of videoClasses) {
-          await fetch(`/api/video-class/${cls._id}`, { method: "DELETE" });
+          await fetch(`${API_BASE}/api/video-class/${cls._id}`, { method: "DELETE" });
         }
 
-        const scheduleRes = await fetch(`/api/schedule?user=후니`);
+        const scheduleRes = await fetch(`${API_BASE}/api/schedule?user=후니`);
         const schedules = await scheduleRes.json();
         const related = schedules.filter(s => s.url === link);
         for (const item of related) {
-          await fetch(`/api/schedule/${item._id}`, { method: "DELETE" });
+          await fetch(`${API_BASE}/api/schedule/${item._id}`, { method: "DELETE" });
         }
 
         const settingsList = JSON.parse(localStorage.getItem("roomSettingsList") || "[]");

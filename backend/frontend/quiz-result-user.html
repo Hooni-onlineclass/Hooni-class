@@ -52,8 +52,9 @@
 
   <script>
     async function loadResults() {
+      const API_BASE = "https://hooni-class.onrender.com";
       try {
-        const res = await fetch("/api/quiz-result");
+        const res = await fetch(`${API_BASE}/api/quiz-result`);
         const results = await res.json();
         const tbody = document.querySelector("#resultTable tbody");
         tbody.innerHTML = "";

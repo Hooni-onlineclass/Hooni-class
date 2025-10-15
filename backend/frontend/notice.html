@@ -39,11 +39,12 @@
 
   <script>
     async function loadNotices() {
+      const API_BASE = "https://hooni-class.onrender.com";
       const container = document.getElementById("noticeContainer");
       container.innerHTML = "";
 
       try {
-        const res = await fetch("/api/notices");
+        const res = await fetch(`${API_BASE}/api/notices`);
         const notices = await res.json();
 
         if (notices.length === 0) {

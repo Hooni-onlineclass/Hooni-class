@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -73,9 +74,11 @@
   </table>
 
   <script>
+    const API_BASE = "https://hooni-class.onrender.com";
+
     async function loadResults() {
       try {
-        const res = await fetch("/api/quiz-result");
+        const res = await fetch(`${API_BASE}/api/quiz-result`);
         const results = await res.json();
         const tbody = document.querySelector("#resultTable tbody");
         tbody.innerHTML = "";
@@ -109,7 +112,7 @@
     async function deleteResult(id) {
       if (!confirm("정말로 이 퀴즈 결과를 삭제하시겠습니까?")) return;
       try {
-        await fetch(`/api/quiz-result/${id}`, { method: "DELETE" });
+        await fetch(`${API_BASE}/api/quiz-result/${id}`, { method: "DELETE" });
         alert("삭제되었습니다.");
         loadResults();
       } catch (err) {
@@ -124,7 +127,7 @@
       if (!newScore || !newTotal) return;
 
       try {
-        await fetch(`/api/quiz-result/${id}`, {
+        await fetch(`${API_BASE}/api/quiz-result/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ score: newScore, total: newTotal })

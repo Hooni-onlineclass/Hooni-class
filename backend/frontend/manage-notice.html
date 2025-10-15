@@ -93,7 +93,7 @@
       list.innerHTML = "";
 
       try {
-        const res = await fetch("/api/notices");
+        const res = await fetch("https://hooni-class.onrender.com/api/notices");
         const notices = await res.json();
 
         notices.forEach((notice) => {
@@ -123,7 +123,7 @@
       }
 
       try {
-        await fetch("/api/notices", {
+        await fetch("https://hooni-class.onrender.com/api/notices", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text, author: "관리자" })
@@ -139,7 +139,9 @@
       if (!confirm("정말 삭제하시겠습니까?")) return;
 
       try {
-        await fetch(`/api/notices/${id}`, { method: "DELETE" });
+        await fetch(`https://hooni-class.onrender.com/api/notices/${id}`, {
+          method: "DELETE"
+        });
         loadNotices();
       } catch (err) {
         alert("삭제 실패");
@@ -151,7 +153,7 @@
       if (!updated || updated.trim() === "") return;
 
       try {
-        await fetch(`/api/notices/${id}`, {
+        await fetch(`https://hooni-class.onrender.com/api/notices/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: updated.trim() })

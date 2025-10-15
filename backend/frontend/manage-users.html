@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -66,8 +65,10 @@
   </table>
 
   <script>
+    const API_BASE = "https://hooni-class.onrender.com";
+
     function loadUsers() {
-      fetch("/api/users")
+      fetch(`${API_BASE}/api/users`)
         .then(res => res.json())
         .then(users => {
           const tbody = document.getElementById("userTableBody");
@@ -95,11 +96,9 @@
     }
 
     function deleteUser(id) {
-      console.log("삭제 요청 ID:", id);
-
       if (!confirm("정말 삭제하시겠습니까?")) return;
 
-      fetch(`/api/users/${id}`, { method: "DELETE" })
+      fetch(`${API_BASE}/api/users/${id}`, { method: "DELETE" })
         .then(res => res.json())
         .then(data => {
           alert(data.message || "삭제 완료");
@@ -115,7 +114,7 @@
 
       if (!newName || !newEmail || !newRole) return;
 
-      fetch(`/api/users/${id}`, {
+      fetch(`${API_BASE}/api/users/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName, email: newEmail, role: newRole })

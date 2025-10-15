@@ -1,5 +1,6 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE = "https://hooni-class.onrender.com";
   const isAdmin = location.pathname.includes("manage-schedule");
   const form = document.getElementById("scheduleForm");
   const list = document.getElementById("scheduleList");
@@ -9,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadSchedule() {
     try {
-      const res = await fetch(`/api/schedule?user=${encodeURIComponent(currentUser)}`);
+      const res = await fetch(`${API_BASE}/api/schedule?user=${encodeURIComponent(currentUser)}`);
       return await res.json();
     } catch (err) {
       console.error("일정 불러오기 실패:", err);
@@ -19,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function saveSchedule(data) {
     try {
-      const res = await fetch("/api/schedule", {
+      const res = await fetch(`${API_BASE}/api/schedule`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -32,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function deleteSchedule(id) {
     try {
-      await fetch(`/api/schedule/${id}`, { method: "DELETE" });
+      await fetch(`${API_BASE}/api/schedule/${id}`, { method: "DELETE" });
     } catch (err) {
       console.error("삭제 실패:", err);
     }
@@ -78,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof openJitsiLikeFrame === "function") {
           openJitsiLikeFrame(link);
         } else {
-          alert("❌ Jitsi 창을 열 수 없습니다.");
+          window.open(link, "_blank", "width=1200,height=750,left=80,top=80");
         }
 
         info.jsEvent.preventDefault(); // 기본 링크 동작 막기
@@ -126,8 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ✅ 수업 목록 불러오기
 async function loadVideoClasses() {
+  const API_BASE = "https://hooni-class.onrender.com";
   try {
-    const res = await fetch("/api/video-class?createdBy=후니");
+    const res = await fetch(`${API_BASE}/api/video-class?createdBy=후니`);
     const classes = await res.json();
 
     const select = document.getElementById("classSelector");
@@ -151,8 +153,9 @@ async function loadVideoClasses() {
 
 // ✅ 선택된 수업 정보 자동 채우기
 async function fillScheduleFields(classId) {
+  const API_BASE = "https://hooni-class.onrender.com";
   try {
-    const res = await fetch(`/api/video-class/${classId}`);
+    const res = await fetch(`${API_BASE}/api/video-class/${classId}`);
     const cls = await res.json();
 
     document.getElementById("title").value = cls.title;
