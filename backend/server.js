@@ -6,10 +6,17 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const cors = require('cors'); // ✅ 추가
 const Notice = require('./models/Notice');
 
 const app = express();
 app.use(express.json());
+// ✅ CORS 설정 추가
+app.use(cors({
+  origin: 'https://hooni-class.netlify.app',
+  credentials: true
+}));
+app.options('*', cors());
 
 // ✅ MongoDB 연결
 mongoose.connect(process.env.MONGODB_URI)
