@@ -16,8 +16,8 @@ app.use(cors({
   origin: 'https://hooni-class.netlify.app',
   credentials: true
 }));
-app.options('*', cors());
-
+//✅ preflight 요청 처리 — 여기만 수정!
+app.options('/*', cors());
 // ✅ MongoDB 연결
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB 연결 성공!'))
