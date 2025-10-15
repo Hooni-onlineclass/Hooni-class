@@ -1,0 +1,37 @@
+
+[
+  { "id": "admin", "pw": "admin", "name": "후니쌤", "role": "admin" },
+
+  { "id": "student01", "pw": "1234", "name": "학생01", "role": "student" },
+  { "id": "student02", "pw": "1234", "name": "학생02", "role": "student" },
+  { "id": "student03", "pw": "1234", "name": "학생03", "role": "student" },
+  { "id": "student04", "pw": "1234", "name": "학생04", "role": "student" },
+  { "id": "student05", "pw": "1234", "name": "학생05", "role": "student" },
+  { "id": "student06", "pw": "1234", "name": "학생06", "role": "student" },
+  { "id": "student07", "pw": "1234", "name": "학생07", "role": "student" },
+  { "id": "student08", "pw": "1234", "name": "학생08", "role": "student" },
+  { "id": "student09", "pw": "1234", "name": "학생09", "role": "student" },
+  { "id": "student10", "pw": "1234", "name": "학생10", "role": "student" },
+
+  { "id": "student11", "pw": "1234", "name": "학생11", "role": "student" },
+  { "id": "student12", "pw": "1234", "name": "학생12", "role": "student" },
+  { "id": "student13", "pw": "1234", "name": "학생13", "role": "student" },
+  { "id": "student14", "pw": "1234", "name": "학생14", "role": "student" },
+  { "id": "student15", "pw": "1234", "name": "학생15", "role": "student" },
+  { "id": "student16", "pw": "1234", "name": "학생16", "role": "student" },
+  { "id": "student17", "pw": "1234", "name": "학생17", "role": "student" },
+  { "id": "student18", "pw": "1234", "name": "학생18", "role": "student" },
+  { "id": "student19", "pw": "1234", "name": "학생19", "role": "student" },
+  { "id": "student20", "pw": "1234", "name": "학생20", "role": "student" },
+
+  { "id": "student21", "pw": "1234", "name": "학생21", "role": "student" },
+  { "id": "student22", "pw": "1234", "name": "학생22", "role": "student" },
+  { "id": "student23", "pw": "1234", "name": "학생23", "role": "student" },
+  { "id": "student24", "pw": "1234", "name": "학생24", "role": "student" },
+  { "id": "student25", "pw": "1234", "name": "학생25", "role": "student" },
+  { "id": "student26", "pw": "1234", "name": "학생26", "role": "student" },
+  { "id": "student27", "pw": "1234", "name": "학생27", "role": "student" },
+  { "id": "student28", "pw": "1234", "name": "학생28", "role": "student" },
+  { "id": "student29", "pw": "1234", "name": "학생29", "role": "student" },
+  { "id": "student30", "pw": "1234", "name": "학생30", "role": "student" }
+]

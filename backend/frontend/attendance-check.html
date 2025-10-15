@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>출석 요청</title>
+  <style>
+    body {
+      font-family: 'Segoe UI';
+      background: #e6f7ff;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      color: #007bff;
+      margin-bottom: 30px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      width: 80%;
+      max-width: 300px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📥 출석 요청</h1>
+  <input type="text" id="nameInput" placeholder="이름을 입력하세요" />
+  <button onclick="submitAttendance()">출석 요청하기</button>
+
+  <script>
+    function submitAttendance() {
+      const name = document.getElementById("nameInput").value.trim();
+      if (!name) {
+        alert("이름을 입력해주세요.");
+        return;
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+
+      fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, date: today })
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+        })
+        .catch(err => {
+          alert("출석 요청 중 오류가 발생했습니다.");
+          console.error(err);
+        });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>출석 관리</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      padding: 40px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1, h2 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    button {
+      padding: 6px 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .edit {
+      background-color: #ffc107;
+      color: black;
+    }
+    .delete {
+      background-color: #dc3545;
+      color: white;
+    }
+    .add {
+      background-color: #28a745;
+      color: white;
+      margin-top: 20px;
+    }
+    .approve {
+      background-color: #28a745;
+      color: white;
+    }
+    input, select {
+      padding: 8px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .empty {
+      text-align: center;
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏆 출석 관리</h1>
+
+  <!-- ✅ 수동 출석 관리 테이블 -->
+  <table id="attendanceTable">
+    <thead>
+      <tr>
+        <th>이름</th>
+        <th>날짜</th>
+        <th>출석 상태</th>
+        <th>관리</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- ✅ 수동 추가 입력 -->
+  <div>
+    <input type="text" id="nameInput" placeholder="이름" />
+    <input type="date" id="dateInput" />
+    <select id="statusInput">
+      <option value="출석">출석</option>
+      <option value="지각">지각</option>
+      <option value="결석">결석</option>
+    </select>
+    <button class="add" onclick="addRow()">추가</button>
+  </div>
+
+  <!-- ✅ 자동 출석 요청 목록 -->
+  <h2>📥 출석 요청 목록</h2>
+  <div id="emptyMessage" class="empty"></div>
+  <table id="requestTable">
+    <thead>
+      <tr>
+        <th>이름</th>
+        <th>날짜</th>
+        <th>처리</th>
+      </tr>
+    </thead>
+    <tbody id="requestBody"></tbody>
+  </table>
+
+  <script>
+    async function loadAttendanceTable() {
+      try {
+        const res = await fetch("/api/attendance");
+        const attendance = await res.json();
+        const tbody = document.querySelector("#attendanceTable tbody");
+        tbody.innerHTML = "";
+
+        for (const date in attendance) {
+          attendance[date].forEach(name => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+              <td>${name}</td>
+              <td>${date}</td>
+              <td>출석</td>
+              <td>
+                <button class="edit" onclick="editRow(this)">수정</button>
+                <button class="delete" onclick="deleteRow(this)">삭제</button>
+              </td>
+            `;
+          });
+        }
+      } catch (err) {
+        console.error("출석 데이터를 불러오는 중 오류:", err);
+      }
+    }
+
+    async function addRow() {
+      const name = document.getElementById("nameInput").value.trim();
+      const date = document.getElementById("dateInput").value;
+      const status = document.getElementById("statusInput").value;
+
+      if (!name || !date) {
+        alert("이름과 날짜를 입력해주세요.");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name })
+        });
+        const result = await res.json();
+        alert(result.message);
+        loadAttendanceTable();
+      } catch (err) {
+        alert("출석 추가 중 오류가 발생했습니다.");
+      }
+
+      document.getElementById("nameInput").value = "";
+      document.getElementById("dateInput").value = "";
+    }
+
+    async function deleteRow(btn) {
+      const row = btn.closest("tr");
+      const name = row.cells[0].textContent;
+      const date = row.cells[1].textContent;
+
+      if (confirm(`"${name}"의 출석 기록을 삭제하시겠습니까?`)) {
+        try {
+          await fetch("/api/attendance", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, date })
+          });
+          row.remove();
+        } catch (err) {
+          alert("삭제 중 오류가 발생했습니다.");
+        }
+      }
+    }
+
+    async function approveAttendance(name, date) {
+      try {
+        const res = await fetch("/api/attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name })
+        });
+        const result = await res.json();
+        alert(result.message);
+        loadRequests();
+        loadAttendanceTable();
+      } catch (err) {
+        alert("출석 처리 중 오류가 발생했습니다.");
+      }
+    }
+
+    function loadRequests() {
+      const requests = JSON.parse(localStorage.getItem("attendanceRequests") || "{}");
+      const today = new Date().toISOString().split("T")[0];
+      const todayRequests = requests[today] || [];
+
+      const tbody = document.getElementById("requestBody");
+      const emptyMessage = document.getElementById("emptyMessage");
+      tbody.innerHTML = "";
+      emptyMessage.textContent = "";
+
+      if (todayRequests.length === 0) {
+        emptyMessage.textContent = "오늘 출석 요청이 없습니다.";
+        return;
+      }
+
+      todayRequests.forEach(name => {
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = name;
+
+        const dateCell = document.createElement("td");
+        dateCell.textContent = today;
+
+        const actionCell = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.textContent = "출석 처리";
+        btn.className = "approve";
+        btn.onclick = function () {
+          approveAttendance(name, today);
+        };
+        actionCell.appendChild(btn);
+
+        row.appendChild(nameCell);
+        row.appendChild(dateCell);
+        row.appendChild(actionCell);
+
+        tbody.appendChild(row);
+      });
+    }
+
+    function editRow(btn) {
+      const row = btn.closest("tr");
+      const name = prompt("이름 수정:", row.cells[0].textContent);
+      const date = prompt("날짜 수정:", row.cells[1].textContent);
+      const status = prompt("출석 상태 수정 (출석/지각/결석):", row.cells[2].textContent);
+
+      if (name && date && status) {
+        row.cells[0].textContent = name;
+        row.cells[1].textContent = date;
+        row.cells[2].textContent = status;
+      }
+    }
+
+    window.onload = function () {
+      loadRequests();
+      loadAttendanceTable();
+    };
+  </script>
+
+</body>
+</html>

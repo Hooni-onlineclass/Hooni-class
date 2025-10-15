@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>수업방 설정</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+      max-width: 700px;
+      margin: auto;
+    }
+    h1 {
+      color: #007bff;
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+    }
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+    .note {
+      font-size: 14px;
+      color: #555;
+      margin-top: -15px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head><body>
+  <h1>🛠️ 수업방 설정</h1>
+
+  <label for="roomTitle">수업 제목</label>
+  <input type="text" id="roomTitle" placeholder="예: 영어회화 중급반" />
+
+  <label for="roomDatetime">수업 시작 시간</label>
+  <input type="datetime-local" id="roomDatetime" />
+
+  <label for="roomLink">수업방 링크</label>
+  <input type="text" id="roomLink" placeholder="예: https://meet.jit.si/hunienglishclass" />
+
+  <label for="isPublic">공개 여부</label>
+  <select id="isPublic">
+    <option value="true">✅ 공개</option>
+    <option value="false">❌ 비공개</option>
+  </select>
+
+  <label for="target">대상 학생</label>
+  <select id="target">
+    <option value="all">전체 학생</option>
+    <option value="specific">특정 학생</option>
+  </select>
+
+  <div id="studentBox" style="display:none;">
+    <label for="studentList">학생 이름 (쉼표로 구분)</label>
+    <textarea id="studentList" placeholder="예: 지민, 태형, 정국"></textarea>
+    <div class="note">※ 특정 학생만 입장 가능하게 하려면 이름을 정확히 입력하세요.</div>
+  </div>
+
+  <button onclick="saveSettings()">설정 저장</button>
+<button onclick="deleteFullClassroomByLink(document.getElementById('roomLink').value)" class="delete-btn">🗑️ 수업방 삭제</button>
+
+
+  <script>
+    document.getElementById("target").addEventListener("change", function () {
+      const value = this.value;
+      document.getElementById("studentBox").style.display = value === "specific" ? "block" : "none";
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const settings = JSON.parse(localStorage.getItem("roomSettings"));
+      const generatedLink = localStorage.getItem("generatedRoomLink");
+
+      if (settings && settings.link) {
+        document.getElementById("roomTitle").value = settings.title || "";
+        document.getElementById("roomDatetime").value = settings.datetime || "";
+        document.getElementById("roomLink").value = settings.link;
+        document.getElementById("isPublic").value = settings.isPublic ? "true" : "false";
+        document.getElementById("target").value = settings.target;
+        if (settings.target === "specific") {
+          document.getElementById("studentBox").style.display = "block";
+          document.getElementById("studentList").value = settings.students.join(", ");
+        }
+      } else if (generatedLink) {
+        document.getElementById("roomLink").value = generatedLink;
+      }
+    });
+
+    async function saveSettings() {
+      const title = document.getElementById("roomTitle").value.trim();
+      const datetime = document.getElementById("roomDatetime").value;
+      const link = document.getElementById("roomLink").value.trim();
+      const isPublic = document.getElementById("isPublic").value === "true";
+      const target = document.getElementById("target").value;
+      const students = document.getElementById("studentList").value.trim();
+
+      if (!title || !datetime || !link.startsWith("https://meet.jit.si/")) {
+        alert("제목, 시간, 링크를 정확히 입력해주세요.");
+        return;
+      }
+
+      const settings = {
+        title,
+        datetime,
+        link,
+        isPublic,
+        target,
+        students: students.split(",").map(s => s.trim()).filter(s => s !== ""),
+        createdBy: "후니"
+      };
+
+      localStorage.setItem("roomSettings", JSON.stringify(settings));
+
+      try {
+        await fetch("/api/video-class", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(settings)
+        });
+
+        await fetch("/api/schedule", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title,
+            start: datetime,
+            url: link,
+            user: "후니"
+          })
+        });
+
+        alert("수업방이 저장되고 일정표에도 등록되었습니다.");
+      } catch (err) {
+        console.error("저장 실패:", err);
+        alert("서버에 저장하는 중 오류가 발생했습니다.");
+      }
+    }
+
+    async function deleteFullClassroomByLink(link) {
+      if (!link || !link.startsWith("https://")) {
+        alert("삭제할 수업방 링크가 없습니다.");
+        return;
+      }
+
+      const confirmDelete = confirm(
+        `현재 수업방 링크는:\n\n${link}\n\n정말로 삭제하시겠습니까?\n삭제하면 다시 되돌릴 수 없습니다.`
+      );
+
+      if (!confirmDelete) return;
+
+      try {
+        const videoRes = await fetch(`/api/video-class?link=${encodeURIComponent(link)}`);
+        const videoClasses = await videoRes.json();
+        for (const cls of videoClasses) {
+          await fetch(`/api/video-class/${cls._id}`, { method: "DELETE" });
+        }
+
+        const scheduleRes = await fetch(`/api/schedule?user=후니`);
+        const schedules = await scheduleRes.json();
+        const related = schedules.filter(s => s.url === link);
+        for (const item of related) {
+          await fetch(`/api/schedule/${item._id}`, { method: "DELETE" });
+        }
+
+        const settingsList = JSON.parse(localStorage.getItem("roomSettingsList") || "[]");
+        const updated = settingsList.filter(s => s.link !== link);
+        localStorage.setItem("roomSettingsList", JSON.stringify(updated));
+
+        const current = JSON.parse(localStorage.getItem("roomSettings") || "{}");
+        if (current.link === link) {
+          localStorage.removeItem("roomSettings");
+          localStorage.removeItem("generatedRoomLink");
+        }
+
+        document.getElementById("roomTitle").value = "";
+        document.getElementById("roomDatetime").value = "";
+        document.getElementById("roomLink").value = "";
+        document.getElementById("studentList").value = "";
+
+        alert("✅ 수업방, 일정, 설정이 모두 삭제되었습니다.");
+      } catch (err) {
+        console.error("❌ 삭제 실패:", err);
+        alert("삭제 중 오류가 발생했습니다.");
+      }
+    }
+  </script>
+</body>
+</html>
+

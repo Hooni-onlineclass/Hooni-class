@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>수업 일정 관리</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 40px;
+      max-width: 700px;
+      margin: auto;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #007bff;
+      margin-bottom: 30px;
+    }
+    form, .filters {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+    .delete, .edit {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .edit {
+      background-color: #28a745;
+    }
+    .edit:hover {
+      background-color: #218838;
+    }
+    .delete:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ 수업 일정 관리</h1>
+
+  <div class="filters">
+    <input type="text" id="keywordFilter" placeholder="제목 또는 링크 키워드로 필터" />
+    <input type="date" id="dateFilter" />
+    <button onclick="renderScheduleList()">필터 적용</button>
+  </div>
+
+  <form id="scheduleForm">
+    <input type="text" id="title" placeholder="수업 제목" required />
+    <input type="datetime-local" id="datetime" required />
+    <input type="url" id="link" placeholder="수업방 링크 (선택)" />
+    <button type="submit">일정 저장</button>
+  </form>
+
+  <ul id="scheduleList"></ul>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("scheduleForm");
+      const list = document.getElementById("scheduleList");
+      const titleInput = document.getElementById("title");
+      const datetimeInput = document.getElementById("datetime");
+      const linkInput = document.getElementById("link");
+      const keywordInput = document.getElementById("keywordFilter");
+      const dateInput = document.getElementById("dateFilter");
+
+      const currentUser = "후니";
+      let editingId = null;
+
+      async function loadSchedule() {
+        try {
+          const res = await fetch(`/api/schedule?user=${encodeURIComponent(currentUser)}`);
+          return await res.json();
+        } catch (err) {
+          console.error("일정 불러오기 실패:", err);
+          return [];
+        }
+      }
+
+      async function saveSchedule(data) {
+        try {
+          const res = await fetch("/api/schedule", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+          return await res.json();
+        } catch (err) {
+          console.error("일정 저장 실패:", err);
+        }
+      }
+
+      async function updateSchedule(id, data) {
+        try {
+          const res = await fetch(`/api/schedule/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+          return await res.json();
+        } catch (err) {
+          console.error("일정 수정 실패:", err);
+        }
+      }
+
+      async function deleteSchedule(id) {
+        try {
+          await fetch(`/api/schedule/${id}`, { method: "DELETE" });
+        } catch (err) {
+          console.error("삭제 실패:", err);
+        }
+      }
+
+      window.handleDelete = async function (id) {
+        if (confirm("일정을 삭제하시겠습니까?")) {
+          await deleteSchedule(id);
+          renderScheduleList();
+        }
+      };
+
+      window.handleEdit = function (id, title, start, url) {
+        editingId = id;
+        titleInput.value = title;
+        datetimeInput.value = start.slice(0, 16);
+        linkInput.value = url;
+      };
+
+      form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const title = titleInput.value.trim();
+        const datetime = datetimeInput.value;
+        const link = linkInput.value.trim();
+
+        if (!title || !datetime) {
+          alert("제목과 날짜를 입력해주세요.");
+          return;
+        }
+
+        const scheduleData = {
+          title,
+          start: datetime,
+          url: link || "",
+          user: currentUser
+        };
+
+        if (editingId) {
+          await updateSchedule(editingId, scheduleData);
+          editingId = null;
+        } else {
+          await saveSchedule(scheduleData);
+        }
+
+        renderScheduleList();
+        form.reset();
+      });
+
+      async function renderScheduleList() {
+        const schedules = await loadSchedule();
+        const keyword = keywordInput.value.trim().toLowerCase();
+        const dateFilter = dateInput.value;
+
+        const filtered = schedules.filter(item => {
+          const matchKeyword =
+            !keyword ||
+            item.title.toLowerCase().includes(keyword) ||
+            (item.url && item.url.toLowerCase().includes(keyword));
+          const matchDate =
+            !dateFilter || new Date(item.start) >= new Date(dateFilter);
+          return matchKeyword && matchDate;
+        });
+
+        list.innerHTML = "";
+
+        if (filtered.length === 0) {
+          list.innerHTML = "<li>조건에 맞는 일정이 없습니다.</li>";
+          return;
+        }
+
+        filtered.forEach((item) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <span>${item.title} - ${new Date(item.start).toLocaleString()} ${item.url ? `(<a href="${item.url}" target="_blank">링크</a>)` : ""}</span>
+            <div class="actions">
+              <button class="edit" onclick="handleEdit('${item._id}', '${item.title}', '${item.start}', '${item.url || ""}')">수정</button>
+              <button class="delete" onclick="handleDelete('${item._id}')">삭제</button>
+              ${item.url ? `<button class="delete" onclick="deleteFullClassroomByLink('${item.url}')">전체 삭제</button>` : ""}
+            </div>
+          `;
+          list.appendChild(li);
+        });
+      }
+
+      // ✅ 통합 삭제 함수 추가
+      window.deleteFullClassroomByLink = async function (link) {
+        if (!confirm(`이 수업방과 관련된 모든 데이터를 삭제하시겠습니까?\n\n${link}`)) return;
+
+        try {
+          const videoRes = await fetch(`/api/video-class?link=${encodeURIComponent(link)}`);
+          const videoClasses = await videoRes.json();
+          for (const cls of videoClasses) {
+            await fetch(`/api/video-class/${cls._id}`, { method: "DELETE" });
+          }
+
+          const scheduleRes = await fetch(`/api/schedule?user=${encodeURIComponent(currentUser)}`);
+          const schedules = await scheduleRes.json();
+          const related = schedules.filter(s => s.url === link);
+          for (const item of related) {
+            await fetch(`/api/schedule/${item._id}`, { method: "DELETE" });
+          }
+
+          const settingsList = JSON.parse(localStorage.getItem("roomSettingsList") || "[]");
+          const updated = settingsList.filter(s => s.link !== link);
+          localStorage.setItem("roomSettingsList", JSON.stringify(updated));
+
+          const current = JSON.parse(localStorage.getItem("roomSettings") || "{}");
+          if (current.link === link) {
+            localStorage.removeItem("roomSettings");
+            localStorage.removeItem("generatedRoomLink");
+          }
+
+          alert("✅ 수업방, 일정, 설정이 모두 삭제되었습니다.");
+          renderScheduleList();
+        } catch (err) {
+          console.error("❌ 삭제 실패:", err);
+          alert("삭제 중 오류가 발생했습니다.");
+        }
+      };
+
+      renderScheduleList();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>출석 현황</title>
+  <style>
+    body {
+      font-family: 'Segoe UI';
+      padding: 40px;
+      background: #f0f4ff;
+    }
+    h1 {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 15px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #4a90e2;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .empty {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 18px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏆 출석 현황</h1>
+  <div id="attendanceContainer"></div>
+
+  <script>
+    async function renderAttendance() {
+      const container = document.getElementById("attendanceContainer");
+
+      try {
+        const res = await fetch("/api/attendance");
+        const attendance = await res.json();
+
+        if (Object.keys(attendance).length === 0) {
+          container.innerHTML = `<p class="empty">출석 기록이 없습니다.</p>`;
+          return;
+        }
+
+        const table = document.createElement("table");
+        const header = document.createElement("tr");
+        header.innerHTML = `
+          <th>날짜</th>
+          <th>출석자 수</th>
+          <th>출석자 목록</th>
+        `;
+        table.appendChild(header);
+
+        for (const date in attendance) {
+          const row = document.createElement("tr");
+
+          const dateCell = document.createElement("td");
+          dateCell.textContent = date;
+
+          const countCell = document.createElement("td");
+          countCell.textContent = attendance[date].length;
+
+          const listCell = document.createElement("td");
+          listCell.textContent = attendance[date].join(", ");
+
+          row.appendChild(dateCell);
+          row.appendChild(countCell);
+          row.appendChild(listCell);
+
+          table.appendChild(row);
+        }
+
+        container.appendChild(table);
+      } catch (err) {
+        container.innerHTML = `<p class="empty">출석 데이터를 불러오는 중 오류가 발생했습니다.</p>`;
+      }
+    }
+
+    renderAttendance();
+  </script>
+</body>
+</html>

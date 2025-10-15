@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>문의하기</title>
+  <style>
+    body {
+      font-family: 'Segoe UI';
+      padding: 40px;
+      background: #f9f9f9;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 30px;
+      padding: 12px 24px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #357ab8;
+    }
+    .my-inquiry-container {
+      max-width: 600px;
+      margin: 40px auto 0;
+    }
+    .my-inquiry {
+      background: #fff;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    .my-inquiry .actions {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+    }
+    .my-inquiry .actions button {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 13px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .my-inquiry .actions button:hover {
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💬 문의하기</h1>
+
+  <form id="inquiryForm">
+    <label for="name">이름</label>
+    <input type="text" id="name" required />
+
+    <label for="email">이메일</label>
+    <input type="email" id="email" required />
+
+    <label for="message">문의 내용</label>
+    <textarea id="message" rows="6" required></textarea>
+
+    <button type="submit">문의 보내기</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("inquiryForm");
+    const nameInput = document.getElementById("name");
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const name = nameInput.value.trim();
+      const email = document.getElementById("email").value.trim();
+      const message = document.getElementById("message").value.trim();
+
+      if (!name || !email || !message) return;
+
+      try {
+        await fetch("/api/inquiry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: `[${email}] ${message}`,
+            author: name
+          })
+        });
+
+        localStorage.setItem("myName", name);
+        alert("문의가 접수되었습니다.");
+        form.reset();
+        loadMyInquiries();
+      } catch (err) {
+        alert("문의 등록 실패");
+      }
+    });
+
+    async function loadMyInquiries() {
+      const myName = localStorage.getItem("myName");
+      if (!myName) return;
+
+      document.querySelectorAll(".my-inquiry-container").forEach(el => el.remove());
+
+      try {
+        const res = await fetch("/api/inquiry");
+        const inquiries = await res.json();
+
+        const myList = inquiries.filter(item => item.author === myName);
+        const container = document.createElement("div");
+        container.className = "my-inquiry-container";
+
+        container.innerHTML = `<h2>📌 내 문의 내역</h2>`;
+        if (myList.length === 0) {
+          container.innerHTML += `<p>아직 문의 내역이 없습니다.</p>`;
+        } else {
+          myList.forEach(item => {
+            container.innerHTML += `
+              <div class="my-inquiry">
+                <div class="actions">
+                  <button onclick="editInquiry('${item._id}', '${item.text.replace(/'/g, "\\'")}')">✏️ 수정</button>
+                  <button onclick="deleteInquiry('${item._id}')">🗑️ 삭제</button>
+                </div>
+                <p><strong>내용:</strong> ${item.text}</p>
+                <p><strong>날짜:</strong> ${new Date(item.date).toLocaleString()}</p>
+                ${item.reply ? `<p><strong>답변:</strong> ${item.reply}</p>` : `<p><em>아직 답변이 없습니다.</em></p>`}
+              </div>
+            `;
+          });
+        }
+
+        document.body.appendChild(container);
+      } catch (err) {
+        console.error("내 문의 불러오기 실패", err);
+      }
+    }
+
+    async function deleteInquiry(id) {
+      if (!confirm("정말 삭제하시겠습니까?")) return;
+      try {
+        await fetch(`/api/inquiry/${id}`, { method: "DELETE" });
+        loadMyInquiries();
+      } catch (err) {
+        alert("삭제 실패");
+      }
+    }
+
+    async function editInquiry(id, oldText) {
+      const newText = prompt("문의 내용을 수정하세요:", oldText);
+      if (!newText || newText.trim() === "") return;
+      try {
+        await fetch(`/api/inquiry/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: newText.trim() })
+        });
+        loadMyInquiries();
+      } catch (err) {
+        alert("수정 실패");
+      }
+    }
+
+    window.onload = loadMyInquiries;
+  </script>
+
+</body>
+</html>

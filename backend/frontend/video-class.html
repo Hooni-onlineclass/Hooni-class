@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>화상 수업 입장</title>
+ <script src="https://meet.mayfirst.org/external_api.js"></script>
+
+  <script src="/jitsi_module.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      padding: 40px;
+      background: #f0f2f5;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .class-item {
+      background: white;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    #jitsi {
+      margin-top: 30px;
+      width: 100%;
+      height: 600px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🎥 화상 수업 입장</h1>
+
+  <label for="studentName">학생 이름 입력</label>
+  <input type="text" id="studentName" placeholder="예: 지민" />
+  <button onclick="loadClasses()">수업 불러오기</button>
+
+  <div id="classList"></div>
+  <div id="jitsi"></div>
+  <!-- ✅ 여기에 추가하세요 -->
+  <div id="fake-frame" style="position: absolute; top: 80px; left: 80px; width: 1200px; height: 750px; visibility: hidden;"></div>
+
+  <script>
+    window.loadClasses = async function () {
+      const student = document.getElementById("studentName").value.trim();
+      if (!student) {
+        alert("학생 이름을 입력해주세요.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/video-class?student=${encodeURIComponent(student)}`);
+        const classes = await res.json();
+
+        const container = document.getElementById("classList");
+        container.innerHTML = "";
+        document.getElementById("jitsi").innerHTML = "";
+
+        if (classes.length === 0) {
+          container.innerHTML = "<p>해당 학생에게 할당된 수업이 없습니다.</p>";
+          return;
+        }
+
+        classes.forEach(cls => {
+          const item = document.createElement("div");
+          item.className = "class-item";
+
+          const date = new Date(cls.datetime).toLocaleString("ko-KR");
+
+          item.innerHTML = `
+            <h3>${cls.title}</h3>
+            <p><strong>시간:</strong> ${date}</p>
+            <p><strong>공개 여부:</strong> ${cls.isPublic ? "전체 공개" : "비공개"}</p>
+            <button onclick="enterClass('${cls.link}', '${student}')">입장하기</button>
+          `;
+
+          container.appendChild(item);
+        });
+      } catch (err) {
+        console.error("수업 불러오기 실패:", err);
+        alert("수업 정보를 불러오는 중 오류가 발생했습니다.");
+      }
+    };
+
+    window.enterClass = function (link, studentName) {
+      const roomName = link.replace("https://meet.jit.si/", "").trim();
+      const jitsiArea = document.getElementById("jitsi");
+      jitsiArea.innerHTML = "";
+
+     if (typeof openJitsiLikeFrame === "function") {
+  openJitsiLikeFrame(link); // 전체 링크 전달
+} else {
+  alert("❌ Jitsi 창을 열 수 없습니다.");
+}
+
+    };
+  </script>
+</body>
+</html>

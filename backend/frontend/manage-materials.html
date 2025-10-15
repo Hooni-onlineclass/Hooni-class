@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>학습자료 관리</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      color: #007bff;
+      margin-bottom: 30px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .delete {
+      background-color: #dc3545;
+    }
+    .delete:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📚 학습자료 관리</h1>
+
+  <form id="materialForm">
+    <input type="text" id="title" placeholder="자료 제목" required />
+    <select id="subject" required>
+      <option value="">과목 선택</option>
+      <option value="국어">국어</option>
+      <option value="영어">영어</option>
+      <option value="수학">수학</option>
+      <option value="과학">과학</option>
+      <option value="사회">사회</option>
+    </select>
+    <input type="file" id="file" accept=".pdf,.hwp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.cell" required />
+    <button type="submit">자료 등록</button>
+  </form>
+
+  <ul id="materialList"></ul>
+
+  <script src="manage-materials.js"></script>
+</body>
+</html>

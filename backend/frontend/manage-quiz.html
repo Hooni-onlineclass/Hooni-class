@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>퀴즈 등록</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0fff0;
+      padding: 40px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      color: #28a745;
+      margin-bottom: 30px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .quiz-item {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .edit {
+      background-color: #ffc107;
+      color: black;
+    }
+    .delete {
+      background-color: #dc3545;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧠 퀴즈 등록</h1>
+
+  <textarea id="questionInput" placeholder="문제를 입력하세요"></textarea>
+  <input type="text" id="option1" placeholder="보기 1" />
+  <input type="text" id="option2" placeholder="보기 2" />
+  <input type="text" id="option3" placeholder="보기 3" />
+  <input type="text" id="option4" placeholder="보기 4" />
+  <select id="answerSelect">
+    <option value="">정답 선택</option>
+    <option value="0">보기 1</option>
+    <option value="1">보기 2</option>
+    <option value="2">보기 3</option>
+    <option value="3">보기 4</option>
+  </select>
+  <button onclick="addQuiz()">등록</button>
+
+  <div id="quizList"></div>
+
+  <script src="manage-quiz.js"></script>
+</body>
+</html>

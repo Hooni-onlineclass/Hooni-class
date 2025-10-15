@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>공지사항 등록</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fffaf0;
+      padding: 40px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      color: #ff6600;
+      margin-bottom: 30px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ff6600;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e65c00;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+    .delete {
+      background-color: #dc3545;
+      padding: 6px 10px;
+      border-radius: 5px;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .edit {
+      background-color: #ffc107;
+      padding: 6px 10px;
+      border-radius: 5px;
+      color: black;
+      border: none;
+      cursor: pointer;
+    }
+    .date {
+      font-size: 13px;
+      color: #999;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔔 공지사항 등록</h1>
+
+  <textarea id="noticeInput" placeholder="공지 내용을 입력하세요..."></textarea>
+  <button onclick="addNotice()">등록</button>
+
+  <ul id="noticeList"></ul>
+
+  <script>
+    async function loadNotices() {
+      const list = document.getElementById("noticeList");
+      list.innerHTML = "";
+
+      try {
+        const res = await fetch("/api/notices");
+        const notices = await res.json();
+
+        notices.forEach((notice) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <div>
+              <div>${notice.text}</div>
+              <div class="date">작성일: ${new Date(notice.date).toLocaleDateString()}</div>
+            </div>
+            <div class="actions">
+              <button class="edit" onclick="editNotice('${notice._id}', '${notice.text}')">수정</button>
+              <button class="delete" onclick="deleteNotice('${notice._id}')">삭제</button>
+            </div>
+          `;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        list.innerHTML = `<li>공지사항을 불러오지 못했습니다.</li>`;
+      }
+    }
+
+    async function addNotice() {
+      const text = document.getElementById("noticeInput").value.trim();
+      if (text === "") {
+        alert("공지 내용을 입력해주세요.");
+        return;
+      }
+
+      try {
+        await fetch("/api/notices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, author: "관리자" })
+        });
+        document.getElementById("noticeInput").value = "";
+        loadNotices();
+      } catch (err) {
+        alert("공지 등록 실패");
+      }
+    }
+
+    async function deleteNotice(id) {
+      if (!confirm("정말 삭제하시겠습니까?")) return;
+
+      try {
+        await fetch(`/api/notices/${id}`, { method: "DELETE" });
+        loadNotices();
+      } catch (err) {
+        alert("삭제 실패");
+      }
+    }
+
+    async function editNotice(id, oldText) {
+      const updated = prompt("공지 수정:", oldText);
+      if (!updated || updated.trim() === "") return;
+
+      try {
+        await fetch(`/api/notices/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: updated.trim() })
+        });
+        loadNotices();
+      } catch (err) {
+        alert("수정 실패");
+      }
+    }
+
+    loadNotices();
+  </script>
+
+</body>
+</html>

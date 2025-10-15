@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>후니쌤 영어 교실 로그인</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-blue-300 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white shadow-xl rounded-xl p-8 w-full max-w-md">
+    <h2 class="text-2xl font-bold text-blue-600 mb-6 text-center">로그인</h2>
+
+    <form id="loginForm" class="space-y-4">
+      <input type="text" id="userID" placeholder="아이디" required
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      <input type="password" id="userPW" placeholder="비밀번호" required
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+      <select id="roleSelect" required
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="student">학생</option>
+        <option value="admin">관리자</option>
+      </select>
+
+      <div class="flex items-center justify-between text-sm text-gray-600">
+        <label class="flex items-center">
+          <input type="checkbox" id="rememberID" class="mr-2" />
+          아이디 저장
+        </label>
+        <div class="flex gap-4">
+          <a href="reset-password.html" class="text-blue-500 hover:underline">비밀번호를 잊으셨나요?</a>
+          <a href="register.html" class="text-blue-500 hover:underline">회원가입</a> <!-- ✅ 추가된 부분 -->
+        </div>
+      </div>
+
+      <button type="submit"
+        class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">로그인</button>
+    </form>
+
+    <div class="text-red-500 text-sm mt-4 text-center" id="errorMsg"></div>
+  </div>
+
+  <script>
+    const userID = document.getElementById('userID');
+    const rememberID = document.getElementById('rememberID');
+    const errorMsg = document.getElementById('errorMsg');
+
+    window.onload = function () {
+      const savedID = localStorage.getItem('savedUserID');
+      if (savedID) {
+        userID.value = savedID;
+        rememberID.checked = true;
+      }
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const id = userID.value.trim();
+      const pw = document.getElementById('userPW').value.trim();
+      const role = document.getElementById('roleSelect').value;
+
+      fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, pw, role })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.message === "로그인 성공!") {
+            if (rememberID.checked) {
+              localStorage.setItem('savedUserID', id);
+            } else {
+              localStorage.removeItem('savedUserID');
+            }
+
+            localStorage.setItem("username", id);
+            localStorage.setItem("role", data.role);
+            localStorage.setItem("name", data.name || "");
+
+            if (data.role === "admin") {
+              window.location.href = "admin.html";
+            } else {
+              window.location.href = "user.html";
+            }
+          } else {
+            errorMsg.textContent = data.message;
+          }
+        })
+        .catch(() => {
+          errorMsg.textContent = "서버 오류로 로그인할 수 없습니다.";
+        });
+    });
+  </script>
+
+</body>
+</html>

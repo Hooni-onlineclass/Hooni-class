@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>수업 일정 등록</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+    }
+    .notice {
+      margin-top: 15px;
+      font-size: 14px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📌 수업 일정 등록</h1>
+
+  <!-- 기존 수업 선택 -->
+  <label for="classSelector">기존 수업 선택</label>
+  <select id="classSelector">
+    <option value="">수업을 선택하세요</option>
+  </select>
+
+  <!-- 일정 등록 폼 -->
+  <form id="scheduleForm">
+    <label for="title">제목</label>
+    <input type="text" id="title" required />
+
+    <label for="datetime">날짜 및 시간</label>
+    <input type="datetime-local" id="datetime" required />
+
+    <label for="link">화상 링크</label>
+    <input type="text" id="link" />
+
+    <button type="submit">일정 등록</button>
+  </form>
+
+  <div class="notice" id="linkNotice" style="display:none;">
+    ✅ 화상방 링크가 자동으로 채워졌습니다.
+  </div>
+
+  <script>
+    // create-room.html에서 저장한 링크 자동 채움
+    document.addEventListener("DOMContentLoaded", () => {
+      const saved = localStorage.getItem("roomSettings");
+      if (saved) {
+        const room = JSON.parse(saved);
+        if (room.link && document.getElementById("link")) {
+          document.getElementById("link").value = room.link;
+          document.getElementById("linkNotice").style.display = "block";
+        }
+      }
+    });
+  </script>
+
+  <script src="schedule.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>학습 자료실</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 40px;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    #materialsList {
+      margin-top: 20px;
+    }
+    .material-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .material-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .subject-tag {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: white;
+    }
+    .subject-tag.국어 { background: #e74c3c; }
+    .subject-tag.영어 { background: #3498db; }
+    .subject-tag.수학 { background: #2ecc71; }
+    .subject-tag.과학 { background: #9b59b6; }
+    .subject-tag.사회 { background: #f39c12; }
+    .material-body {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .material-footer button {
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .material-footer button.delete {
+      background: #dc3545;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📚 학습 자료실</h1>
+
+  <label for="subjectFilter">과목별 보기:</label>
+  <select id="subjectFilter">
+    <option value="전체">전체</option>
+    <option value="국어">국어</option>
+    <option value="영어">영어</option>
+    <option value="수학">수학</option>
+    <option value="과학">과학</option>
+    <option value="사회">사회</option>
+  </select>
+
+  <div id="materialsList"></div>
+
+  <script src="materials.js"></script>
+</body>
+</html>

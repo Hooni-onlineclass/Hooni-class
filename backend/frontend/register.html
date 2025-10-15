@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원가입</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      padding: 50px;
+    }
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #message {
+      margin-top: 10px;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>회원가입</h2>
+    <form id="registerForm">
+      <input type="text" id="userID" placeholder="아이디" required />
+      <input type="password" id="userPW" placeholder="비밀번호" required />
+      <select id="roleSelect" required>
+        <option value="">역할 선택</option>
+        <option value="student">학생</option>
+      
+      </select>
+      <input type="text" id="name" placeholder="이름" required />
+      <input type="text" id="phone" placeholder="휴대폰 번호 ('-' 없이)" required />
+      <input type="email" id="email" placeholder="이메일" required />
+      <button type="submit">가입하기</button>
+      <p id="message"></p>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const id = document.getElementById("userID").value.trim();
+      const pw = document.getElementById("userPW").value.trim();
+      const role = document.getElementById("roleSelect").value;
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const msg = document.getElementById("message");
+
+      if (!id || !pw || !role || !name || !phone || !email) {
+        alert("모든 항목을 입력해주세요!");
+        return;
+      }
+
+      msg.style.color = "gray";
+      msg.textContent = "가입 요청 중...";
+
+      fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, pw, role, name, phone, email })
+      })
+        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(({ status, body }) => {
+          if (status === 201) {
+            msg.style.color = "green";
+            msg.textContent = body.message;
+
+            // ✅ 로그인 페이지로 자동 이동 (2초 후)
+            setTimeout(() => {
+              window.location.href = "login.html";
+            }, 2000);
+          } else if (status === 409) {
+            msg.style.color = "red";
+            msg.textContent = "이미 존재하는 아이디입니다. 다른 아이디를 입력해주세요.";
+          } else {
+            msg.style.color = "red";
+            msg.textContent = body.message || "회원가입 실패";
+          }
+        })
+        .catch(() => {
+          msg.style.color = "red";
+          msg.textContent = "서버 오류로 가입할 수 없습니다.";
+        });
+    });
+  </script>
+
+</body>
+</html>

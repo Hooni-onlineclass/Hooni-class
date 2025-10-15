@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>화상 수업 관리</title>
+  <script src="https://meet.mayfirst.org/external_api.js"></script>
+  <script src="/jitsi_module.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fffaf0;
+      padding: 40px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 {
+      color: #dc3545;
+      margin-bottom: 30px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px 16px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .class-item {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+    .class-item h3 {
+      margin: 0 0 10px;
+    }
+    .class-item p {
+      margin: 5px 0;
+      color: #555;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      margin-left: 10px;
+    }
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+    #jitsi {
+      margin-top: 40px;
+      width: 100%;
+      height: 600px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠️ 화상 수업 관리</h1>
+
+  <input type="text" id="studentName" placeholder="학생 이름으로 필터링 (예: 지민)" />
+  <button onclick="loadClasses()">수업 불러오기</button>
+
+  <div id="classList"></div>
+  <div id="jitsi"></div>
+  <div id="fake-frame" style="position: absolute; top: 80px; left: 80px; width: 1200px; height: 750px; visibility: hidden;"></div>
+
+  <script>
+    window.loadClasses = async function () {
+      const student = document.getElementById("studentName").value.trim();
+      let url = "/api/video-class";
+      url += `?createdBy=후니${student ? `&student=${encodeURIComponent(student)}` : ""}`;
+
+      try {
+        const res = await fetch(url);
+        const classes = await res.json();
+
+        const container = document.getElementById("classList");
+        container.innerHTML = "";
+        document.getElementById("jitsi").innerHTML = "";
+
+        if (classes.length === 0) {
+          container.innerHTML = "<p>해당 조건에 맞는 수업이 없습니다.</p>";
+          return;
+        }
+
+        classes.forEach(cls => {
+          const item = document.createElement("div");
+          item.className = "class-item";
+
+          const date = new Date(cls.datetime).toLocaleString("ko-KR");
+
+          item.innerHTML = `
+            <h3>${cls.title}</h3>
+            <p><strong>시간:</strong> ${date}</p>
+            <p><strong>링크:</strong> <a href="${cls.link}" target="_blank">${cls.link}</a></p>
+            <p><strong>공개 여부:</strong> ${cls.isPublic ? "전체 공개" : "비공개"}</p>
+            <p><strong>대상:</strong> ${cls.target === "all" ? "전체 학생" : cls.students.join(", ")}</p>
+            <button onclick="enterClass('${cls.link}', '관리자')">입장</button>
+            <button onclick="editClass('${cls._id}', '${cls.title}', '${cls.datetime}', '${cls.link}')">수정</button>
+            <button class="delete-btn" onclick="deleteClass('${cls._id}')">삭제</button>
+            <button class="delete-btn" onclick="deleteFullClassroomByLink('${cls.link}')">전체 삭제</button>
+          `;
+
+          container.appendChild(item);
+        });
+      } catch (err) {
+        console.error("수업 불러오기 실패:", err);
+        alert("수업 정보를 불러오는 중 오류가 발생했습니다.");
+      }
+    };
+
+    window.enterClass = function (link, displayName) {
+      const roomName = link.replace("https://meet.jit.si/", "").trim();
+      const jitsiArea = document.getElementById("jitsi");
+      jitsiArea.innerHTML = "";
+
+      if (typeof openJitsiLikeFrame === "function") {
+        openJitsiLikeFrame(link);
+      } else {
+        alert("❌ Jitsi 창을 열 수 없습니다.");
+      }
+    };
+
+    window.deleteClass = async function (id) {
+      const confirmDelete = confirm("정말로 이 수업을 삭제하시겠습니까?");
+      if (!confirmDelete) return;
+
+      try {
+        const res = await fetch(`/api/video-class/${id}`, {
+          method: "DELETE"
+        });
+        const result = await res.json();
+        alert("삭제되었습니다.");
+        loadClasses();
+      } catch (err) {
+        console.error("삭제 실패:", err);
+        alert("삭제 중 오류가 발생했습니다.");
+      }
+    };
+
+    window.editClass = function (id, title, datetime, link) {
+      const newTitle = prompt("새 수업 제목을 입력하세요:", title);
+      if (!newTitle) return;
+
+      const newDatetime = prompt("새 수업 시간 (ISO 형식) 입력:", datetime);
+      if (!newDatetime) return;
+
+      const newLink = prompt("새 수업 링크를 입력하세요:", link);
+      if (!newLink) return;
+
+      const updated = {
+        title: newTitle,
+        datetime: newDatetime,
+        link: newLink
+      };
+
+      fetch(`/api/video-class/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert("수정되었습니다.");
+        loadClasses();
+      })
+      .catch(err => {
+        console.error("수정 실패:", err);
+        alert("수정 중 오류가 발생했습니다.");
+      });
+    };
+
+    // ✅ 통합 삭제 함수 추가
+    async function deleteFullClassroomByLink(link) {
+      if (!confirm(`이 수업방과 관련된 모든 데이터를 삭제하시겠습니까?\n\n${link}`)) return;
+
+      try {
+        const videoRes = await fetch(`/api/video-class?link=${encodeURIComponent(link)}`);
+        const videoClasses = await videoRes.json();
+        for (const cls of videoClasses) {
+          await fetch(`/api/video-class/${cls._id}`, { method: "DELETE" });
+        }
+
+        const scheduleRes = await fetch(`/api/schedule?user=후니`);
+        const schedules = await scheduleRes.json();
+        const related = schedules.filter(s => s.url === link);
+        for (const item of related) {
+          await fetch(`/api/schedule/${item._id}`, { method: "DELETE" });
+        }
+
+        const settingsList = JSON.parse(localStorage.getItem("roomSettingsList") || "[]");
+        const updated = settingsList.filter(s => s.link !== link);
+        localStorage.setItem("roomSettingsList", JSON.stringify(updated));
+
+        const current = JSON.parse(localStorage.getItem("roomSettings") || "{}");
+        if (current.link === link) {
+          localStorage.removeItem("roomSettings");
+          localStorage.removeItem("generatedRoomLink");
+        }
+
+        alert("✅ 수업방, 일정, 설정이 모두 삭제되었습니다.");
+        loadClasses();
+      } catch (err) {
+        console.error("❌ 삭제 실패:", err);
+        alert("삭제 중 오류가 발생했습니다.");
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", loadClasses);
+  </script>
+
+</body>
+</html>
